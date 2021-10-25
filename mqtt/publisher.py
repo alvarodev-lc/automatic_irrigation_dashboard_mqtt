@@ -1,5 +1,9 @@
 import random
 import time
+from os import path
+import sys
+# To make it possible to execute the publisher from the terminal, this is needed to import the sensors
+sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 from paho.mqtt import client as mqtt_client
 from sensors.temperature_sensor import TemperatureSensor
