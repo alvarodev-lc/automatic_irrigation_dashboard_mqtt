@@ -43,7 +43,7 @@ def publish(client):
     while True:
         topic_num = 0
         messages = []
-        time.sleep(1)
+        time.sleep(0.1)
         temp = temperature_sensor.read_temperature()
         messages.append(temp)
         humidity = humidity_sensor.read_humidity()
