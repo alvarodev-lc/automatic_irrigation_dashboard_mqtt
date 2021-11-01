@@ -32,6 +32,8 @@ def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
         if msg.topic == "sensors/temperature":
             update_dashboard_temp(msg)
+        elif msg.topic == "sensors/humidity":
+            update_dashboard_humidity(msg)
         print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
 
     client.subscribe(temp_topic)
@@ -44,11 +46,19 @@ def update_dashboard_temp(msg):
                       fg="black")
 
 
+def update_dashboard_humidity(msg):
+    hum_label.config(text=msg.payload.decode() + "%",
+                     fg="black")
+
+#############
+# Dashboard #
+#############
 window = Tk()
 window.title("MQTT Dashboard")
 window.geometry("720x720")
 window.configure(bg="white")
 
+# Base canvas
 canvas = Canvas(window, bg="white", width=720, height=720)
 # To erase the border of the canvas
 canvas.config(highlightthickness=0)
@@ -56,6 +66,7 @@ canvas.place(x=0, y=0)
 img = PhotoImage(file="../images/logo_test.png")
 canvas.create_image(0, 0, anchor=NW, image=img)
 
+# Temperature canvas
 canvas2 = Canvas(window, bg="white", width=100, height=100)
 # To erase the border of the canvas
 canvas2.config(highlightthickness=0)
@@ -65,7 +76,7 @@ resized_img = img2.resize((100, 100), Image.ANTIALIAS)
 img2 = ImageTk.PhotoImage(resized_img)
 canvas2.create_image(0, 0, anchor=NW, image=img2)
 
-# Create Label
+# Label for temperature
 temp_label = Label(window,
                    text=" °C",
                    bg="white",
@@ -73,6 +84,25 @@ temp_label = Label(window,
                    font=("Helvetica", 32))
 
 temp_label.place(x=180, y=190)
+
+# Humidity canvas
+canvas3 = Canvas(window, bg="white", width=100, height=100)
+# To erase the border of the canvas
+canvas3.config(highlightthickness=0)
+canvas3.place(x=67, y=297)
+img3 = Image.open("../images/humidity.png")
+resized_img = img3.resize((100, 100), Image.ANTIALIAS)
+img3 = ImageTk.PhotoImage(resized_img)
+canvas3.create_image(0, 0, anchor=NW, image=img3)
+
+# Label for humidity
+hum_label = Label(window,
+                   text=" %",
+                   bg="white",
+                   fg="black",
+                   font=("Helvetica", 32))
+
+hum_label.place(x=180, y=325)
 
 client = connect_mqtt()
 subscribe(client)
