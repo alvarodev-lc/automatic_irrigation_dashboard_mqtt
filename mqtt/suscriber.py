@@ -1,8 +1,18 @@
 import random
+import time
 
 from paho.mqtt import client as mqtt_client
 from tkinter import *
 from PIL import Image, ImageTk
+
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import (
+    FigureCanvasTkAgg, NavigationToolbar2Tk)
+# Implement the default Matplotlib key bindings.
+from matplotlib.backend_bases import key_press_handler
+from matplotlib.figure import Figure
+
+import numpy as np
 
 broker = 'broker.emqx.io'
 port = 1883
@@ -32,6 +42,7 @@ def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
         if msg.topic == "sensors/temperature":
             update_dashboard_temp(msg)
+            update_graph(msg)
         elif msg.topic == "sensors/humidity":
             update_dashboard_humidity(msg)
         print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
@@ -39,6 +50,10 @@ def subscribe(client: mqtt_client):
     client.subscribe(temp_topic)
     client.subscribe(humidity_topic)
     client.on_message = on_message
+
+#############
+# Dashboard #
+#############
 
 
 def update_dashboard_temp(msg):
@@ -50,12 +65,35 @@ def update_dashboard_humidity(msg):
     hum_label.config(text=msg.payload.decode() + "%",
                      fg="black")
 
-#############
-# Dashboard #
-#############
+
+def update_graph(msg):
+    # First swipe all values to the left
+    index = len(x)
+    xaux = None
+    yaux = None
+    for i in range(len(x) - 1):
+        if not xaux:
+            xaux = x[index - 2]
+            x[index-2] = x[index - 1]
+            yaux = y[index - 2]
+            y[index - 2] = y[index - 1]
+        else:
+            x[index-2] = xaux
+            y[index - 2] = yaux
+        index -= 1
+
+    # Then update the last value for the graph
+    x[len(x) - 1] = x[len(x)-1] + 0.1
+    y[len(y) - 1] = msg.payload.decode()
+
+    # Replot the graph
+    subplot.plot(x, y, c=line_color)
+    graph_canvas.draw()
+
+
 window = Tk()
 window.title("MQTT Dashboard")
-window.geometry("720x720")
+window.geometry("1024x720")
 window.configure(bg="white")
 
 # Base canvas
@@ -103,6 +141,22 @@ hum_label = Label(window,
                    font=("Helvetica", 32))
 
 hum_label.place(x=180, y=325)
+
+# Real time graph
+line_color = "r"
+fig = Figure(figsize=(4, 3), dpi=100)
+t = 0.1
+x = [0, 0, 0, 0, 0]
+y = [0, 0, 0, 0, 0]
+subplot = fig.add_subplot(111)
+subplot.plot(x, y, c=line_color)
+
+graph_canvas = FigureCanvasTkAgg(fig, master=window)  # A tk.DrawingArea.
+graph_canvas.draw()
+graph_canvas.get_tk_widget().pack(side=BOTTOM)
+
+toolbar = NavigationToolbar2Tk(graph_canvas, window)
+toolbar.update()
 
 client = connect_mqtt()
 subscribe(client)
