@@ -1,18 +1,13 @@
 import random
-import time
 
 from paho.mqtt import client as mqtt_client
 from tkinter import *
 from PIL import Image, ImageTk
 
-import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg, NavigationToolbar2Tk)
-# Implement the default Matplotlib key bindings.
-from matplotlib.backend_bases import key_press_handler
 from matplotlib.figure import Figure
 
-import numpy as np
 
 broker = 'broker.emqx.io'
 port = 1883
