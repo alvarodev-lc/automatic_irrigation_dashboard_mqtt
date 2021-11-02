@@ -5,5 +5,5 @@ class TemperatureSensor:
     temp = None
 
     def read_temperature(self):
-        self.temp = random.randint(20, 40)
+        self.temp = round(random.uniform(20.00, 40.00), 2)
         return self.temp
