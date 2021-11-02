@@ -64,7 +64,7 @@ def update_dashboard_humidity(msg):
 
 
 def update_graph(msg):
-    # Swipe al values to the right
+    # Swipe al values to the left
     x[:] = x[1:5]+x[0:1]
     y[:] = y[1:5] + y[0:1]
     # Then update the last value for the graph
