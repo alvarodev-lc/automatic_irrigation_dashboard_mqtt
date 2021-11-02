@@ -67,9 +67,6 @@ def update_graph(msg):
     # Swipe al values to the left
     x[:] = x[1:5]+x[0:1]
     y[:] = y[1:5]+y[0:1]
-    print(x)
-    print(y)
-    print("NEXT")
     # Then update the last value for the graph
     x[len(x) - 1] = float(x[len(x) - 2] + 0.1)
     y[len(y) - 1] = float(msg.payload.decode())
