@@ -42,7 +42,7 @@ def subscribe(client: mqtt_client):
             update_graph(msg)
         elif msg.topic == "sensors/humidity":
             update_dashboard_humidity(msg)
-        print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
+        # print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
 
     client.subscribe(temp_topic)
     client.subscribe(humidity_topic)
@@ -66,14 +66,17 @@ def update_dashboard_humidity(msg):
 def update_graph(msg):
     # Swipe al values to the left
     x[:] = x[1:5]+x[0:1]
-    y[:] = y[1:5] + y[0:1]
+    y[:] = y[1:5]+y[0:1]
+    print(x)
+    print(y)
+    print("NEXT")
     # Then update the last value for the graph
-    x[len(x) - 1] = x[len(x) - 1] + 0.1
+    x[len(x) - 1] = x[len(x) - 2] + 0.1
     y[len(y) - 1] = msg.payload.decode()
 
     # Replot the graph
     plt.cla()
-    subplot.set_xlim(0.1 + x[len(x)-1] - 4, x[len(x)-1])
+    subplot.set_xlim(0.1 + x[len(x)-1] - 2, x[len(x)-1])
     subplot.set_ylim(0, 20)
     subplot.plot(x, y, c=line_color)
     graph_canvas.draw()
