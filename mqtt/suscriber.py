@@ -1,9 +1,11 @@
 import random
+from collections import deque
 
 from paho.mqtt import client as mqtt_client
 from tkinter import *
 from PIL import Image, ImageTk
 
+from matplotlib import pyplot as plt
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg, NavigationToolbar2Tk)
 from matplotlib.figure import Figure
@@ -62,26 +64,17 @@ def update_dashboard_humidity(msg):
 
 
 def update_graph(msg):
-    # First swipe all values to the left
-    index = len(x)
-    xaux = None
-    yaux = None
-    for i in range(len(x) - 1):
-        if not xaux:
-            xaux = x[index - 2]
-            x[index-2] = x[index - 1]
-            yaux = y[index - 2]
-            y[index - 2] = y[index - 1]
-        else:
-            x[index-2] = xaux
-            y[index - 2] = yaux
-        index -= 1
-
+    # Swipe al values to the right
+    x[:] = x[1:5]+x[0:1]
+    y[:] = y[1:5] + y[0:1]
     # Then update the last value for the graph
-    x[len(x) - 1] = x[len(x)-1] + 0.1
+    x[len(x) - 1] = x[len(x) - 1] + 0.1
     y[len(y) - 1] = msg.payload.decode()
 
     # Replot the graph
+    plt.cla()
+    subplot.set_xlim(0.1 + x[len(x)-1] - 4, x[len(x)-1])
+    subplot.set_ylim(0, 20)
     subplot.plot(x, y, c=line_color)
     graph_canvas.draw()
 
