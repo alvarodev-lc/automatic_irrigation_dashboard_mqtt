@@ -42,7 +42,7 @@ def subscribe(client: mqtt_client):
             update_graph(msg)
         elif msg.topic == "sensors/humidity":
             update_dashboard_humidity(msg)
-        # print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
+        print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
 
     client.subscribe(temp_topic)
     client.subscribe(humidity_topic)
