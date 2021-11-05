@@ -10,7 +10,7 @@ from sensors.temperature_sensor import TemperatureSensor
 from sensors.humidity_sensor import HumiditySensor
 
 
-broker = 'broker.emqx.io'
+broker = 'localhost'
 port = 1883
 topics = [
     "sensors/temperature",

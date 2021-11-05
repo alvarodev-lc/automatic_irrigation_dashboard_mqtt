@@ -1,5 +1,4 @@
 import random
-from collections import deque
 
 from paho.mqtt import client as mqtt_client
 from tkinter import *
@@ -11,7 +10,7 @@ from matplotlib.backends.backend_tkagg import (
 from matplotlib.figure import Figure
 
 
-broker = 'broker.emqx.io'
+broker = 'localhost'
 port = 1883
 temp_topic = "sensors/temperature"
 humidity_topic = "sensors/humidity"
