@@ -70,8 +70,8 @@ def publish(client):
         file.flush()
         hum_sensor_num = 1
 
-    topics.append(f"sensors/{temp_sensor_num}/temp")
-    topics.append(f"sensors/{hum_sensor_num}/hum")
+    topics.append(f"sensor/{temp_sensor_num}/temp")
+    topics.append(f"sensor/{hum_sensor_num}/hum")
     while True:
         topic_num = 0
         messages = []
