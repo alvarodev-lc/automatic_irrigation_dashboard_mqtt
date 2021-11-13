@@ -36,10 +36,12 @@ def connect_mqtt() -> mqtt_client:
 def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
         if msg.topic == "sensor/1/temp":
-            update_dashboard_temp(msg)
+            temp_label.config(text=msg.payload.decode() + "%",
+                                fg="black")
             update_graph(msg)
         elif msg.topic == "sensor/1/hum":
-            update_dashboard_humidity(msg)
+            hum_label.config(text=msg.payload.decode() + "%",
+                              fg="black")
         elif msg.topic == "sensor/2/temp":
             temp_label_1.config(text=msg.payload.decode() + "%",
                                 fg="black")
@@ -84,16 +86,6 @@ def publish(client, status, sensor_num):
 #############
 # Dashboard #
 #############
-
-def update_dashboard_temp(msg):
-    temp_label.config(text=msg.payload.decode() + " °C",
-                      fg="black")
-
-
-def update_dashboard_humidity(msg):
-    hum_label.config(text=msg.payload.decode() + "%",
-                     fg="black")
-
 
 def update_graph(msg):
     # Swipe al values to the left
