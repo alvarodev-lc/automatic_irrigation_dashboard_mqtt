@@ -10,13 +10,13 @@ from sensors.temperature_sensor import TemperatureSensor
 from sensors.humidity_sensor import HumiditySensor
 
 
-broker = 'broker.emqx.io'
+broker = 'localhost'
 port = 1883
 topics = []
 # generate client ID with pub prefix randomly
 client_id = f'python-mqtt-{random.randint(0, 1000)}'
-username = 'emqx'
-password = 'public'
+username = 'local'
+password = 'localpw'
 
 
 def connect_mqtt():

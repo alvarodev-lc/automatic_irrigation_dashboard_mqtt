@@ -10,14 +10,14 @@ from matplotlib.backends.backend_tkagg import (
 from matplotlib.figure import Figure
 
 
-broker = 'broker.emqx.io'
+broker = 'localhost'
 port = 1883
 temp_topic = "sensors/+/temp"
 humidity_topic = "sensors/+/hum"
 # generate client ID with public prefix randomly
 client_id = f'python-mqtt-{random.randint(0, 100000)}'
-username = 'emqx'
-password = 'public'
+username = 'local'
+password = 'localpw'
 
 
 def connect_mqtt() -> mqtt_client:
