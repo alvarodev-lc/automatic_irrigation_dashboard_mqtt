@@ -6,7 +6,7 @@ from PIL import Image, ImageTk
 
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_tkagg import (
-    FigureCanvasTkAgg, NavigationToolbar2Tk)
+    FigureCanvasTkAgg)
 from matplotlib.figure import Figure
 
 broker = 'localhost'
@@ -35,38 +35,39 @@ def connect_mqtt() -> mqtt_client:
 
 def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
+        parsed_msg = msg.payload.decode().split("\\")[0]
         if msg.topic == "sensor/1/temp":
-            temp_label.config(text=msg.payload.decode() + "%",
+            temp_label.config(text=parsed_msg + "%",
                                 fg="black")
             update_graph(msg)
         elif msg.topic == "sensor/1/hum":
-            hum_label.config(text=msg.payload.decode() + "%",
+            hum_label.config(text=parsed_msg + "%",
                               fg="black")
         elif msg.topic == "sensor/2/temp":
-            temp_label_1.config(text=msg.payload.decode() + "%",
+            temp_label_1.config(text=parsed_msg + "%",
                                 fg="black")
         elif msg.topic == "sensor/2/hum":
-            hum_label_1.config(text=msg.payload.decode() + "%",
+            hum_label_1.config(text=parsed_msg + "%",
                                fg="black")
         elif msg.topic == "sensor/3/temp":
-            temp_label_2.config(text=msg.payload.decode() + "%",
+            temp_label_2.config(text=parsed_msg + "%",
                                 fg="black")
         elif msg.topic == "sensor/3/hum":
-            hum_label_2.config(text=msg.payload.decode() + "%",
+            hum_label_2.config(text=parsed_msg + "%",
                                fg="black")
         elif msg.topic == "sensor/4/temp":
-            temp_label_3.config(text=msg.payload.decode() + "%",
+            temp_label_3.config(text=parsed_msg + "%",
                                 fg="black")
         elif msg.topic == "sensor/4/hum":
-            hum_label_3.config(text=msg.payload.decode() + "%",
+            hum_label_3.config(text=parsed_msg + "%",
                                fg="black")
         elif msg.topic == "sensor/5/temp":
-            temp_label_4.config(text=msg.payload.decode() + "%",
+            temp_label_4.config(text=parsed_msg + "%",
                                 fg="black")
         elif msg.topic == "sensor/5/hum":
-            hum_label_4.config(text=msg.payload.decode() + "%",
+            hum_label_4.config(text=parsed_msg + "%",
                                fg="black")
-        print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
+        print(f"Received `{parsed_msg}` from `{msg.topic}` topic")
 
     client.subscribe(temp_topic)
     client.subscribe(humidity_topic)
@@ -93,7 +94,7 @@ def update_graph(msg):
     y[:] = y[1:5] + y[0:1]
     # Then update the last value for the graph
     x[len(x) - 1] = float(x[len(x) - 2] + 0.1)
-    y[len(y) - 1] = float(msg.payload.decode())
+    y[len(y) - 1] = float(msg.payload.decode().split("\\")[0])
 
     # Replot the graph
     plt.cla()
@@ -455,9 +456,6 @@ subplot.plot(x, y, c=line_color)
 graph_canvas = FigureCanvasTkAgg(fig, master=window)  # A tk.DrawingArea.
 graph_canvas.draw()
 graph_canvas.get_tk_widget().pack(side=BOTTOM)
-
-toolbar = NavigationToolbar2Tk(graph_canvas, window)
-toolbar.update()
 
 client = connect_mqtt()
 subscribe(client)
