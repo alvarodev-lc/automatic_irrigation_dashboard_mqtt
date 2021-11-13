@@ -14,6 +14,10 @@ port = 1883
 temp_topic = "sensor/+/temp"
 humidity_topic = "sensor/+/hum"
 # generate client ID with public prefix randomly
+client_id = f'python-mqtt-{random.randint(0, 100000)}'
+username = 'local'
+password = 'localpw'
+
 
 def connect_mqtt() -> mqtt_client:
     def on_connect(client, userdata, flags, rc):
