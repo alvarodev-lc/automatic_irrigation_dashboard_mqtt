@@ -10,12 +10,9 @@ from sensors.temperature_sensor import TemperatureSensor
 from sensors.humidity_sensor import HumiditySensor
 
 
-broker = 'localhost'
+broker = 'broker.emqx.io'
 port = 1883
-topics = [
-    "sensors/temperature",
-    "sensors/humidity"
-]
+topics = []
 # generate client ID with pub prefix randomly
 client_id = f'python-mqtt-{random.randint(0, 1000)}'
 username = 'emqx'
@@ -40,7 +37,42 @@ def publish(client):
     temperature_sensor = TemperatureSensor()
     humidity_sensor = HumiditySensor()
     msg_count = 0
+    temp_sensor_num = None
+    try:
+        file = open("temp_sensor_num.txt", 'r')
+        filedata = file.read()
+        print(filedata)
+        temp_sensor_num = int(filedata) + 1
+        print(temp_sensor_num)
+        file = open("temp_sensor_num.txt", 'w')
+        file.write(str(temp_sensor_num))
+        file.flush()
+    except IOError:
+        file = open("temp_sensor_num.txt", 'w')
+        file.write("1")
+        file.flush()
+        temp_sensor_num = 1
+
+    hum_sensor_num = None
+    try:
+        file = open("hum_sensor_num.txt", 'r')
+        filedata = file.read()
+        print(filedata)
+        hum_sensor_num = int(filedata) + 1
+        print(hum_sensor_num)
+        file = open("hum_sensor_num.txt", 'w')
+        file.write(str(hum_sensor_num))
+        file.flush()
+    except IOError:
+        file = open("hum_sensor_num.txt", 'w')
+        file.write("1")
+        file.flush()
+        hum_sensor_num = 1
+
+    topics.append(f"sensors/{temp_sensor_num}/temp")
+    topics.append(f"sensors/{hum_sensor_num}/hum")
     while True:
+        print("inside")
         topic_num = 0
         messages = []
         time.sleep(0.1)

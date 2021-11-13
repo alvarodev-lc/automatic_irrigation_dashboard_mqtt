@@ -10,10 +10,10 @@ from matplotlib.backends.backend_tkagg import (
 from matplotlib.figure import Figure
 
 
-broker = 'localhost'
+broker = 'broker.emqx.io'
 port = 1883
-temp_topic = "sensors/temperature"
-humidity_topic = "sensors/humidity"
+temp_topic = "sensors/+/temp"
+humidity_topic = "sensors/+/hum"
 # generate client ID with public prefix randomly
 client_id = f'python-mqtt-{random.randint(0, 100000)}'
 username = 'emqx'
@@ -36,10 +36,10 @@ def connect_mqtt() -> mqtt_client:
 
 def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
-        if msg.topic == "sensors/temperature":
+        if msg.topic == "sensors/1/temp":
             update_dashboard_temp(msg)
             update_graph(msg)
-        elif msg.topic == "sensors/humidity":
+        elif msg.topic == "sensors/1/hum":
             update_dashboard_humidity(msg)
         print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
 
