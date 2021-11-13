@@ -37,7 +37,8 @@ def publish(client):
     temperature_sensor = TemperatureSensor()
     humidity_sensor = HumiditySensor()
     msg_count = 0
-    temp_sensor_num = None
+
+    # Set temperature sensor number
     try:
         file = open("temp_sensor_num.txt", 'r')
         filedata = file.read()
@@ -53,7 +54,7 @@ def publish(client):
         file.flush()
         temp_sensor_num = 1
 
-    hum_sensor_num = None
+    # Set humidity sensor number
     try:
         file = open("hum_sensor_num.txt", 'r')
         filedata = file.read()
