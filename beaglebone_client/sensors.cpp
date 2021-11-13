@@ -4,54 +4,100 @@
 #include <memory>
 #include <thread>
 #include "MQTTClient.h"
+#ifdef HW
 //#include <beaglebone_pruio.h>
 //#include <beaglebone_pruio_pins.h>
+#endif
 #define DEFAULT_STACK_SIZE -1
+#define PUBLISH_TIME 2
 #include <fstream>
 #include "linux/linux.cpp"
 #include <unistd.h>
 int arrivedcount = 0;
 
-bool sensorActivated = true;
-class TempSensor {
+bool nodeActivated = true;
+int water = 0;
+int Qos = 0;
+char topicTemp[30]="";
+char topicHum[30]="";
+char topicStatus[30]="";
+char topicWater[30]="";
+char topicQoS[30]="";
+class Node {
 
 public:
+    int id;
     float temp;
-    bool sensorEnabled;
-    TempSensor(std::shared_ptr <IPStack> ipstack,std::shared_ptr<MQTT::Client<IPStack, Countdown>> client): m_ipstack(ipstack), m_client(client),sensorEnabled(true){};
+    float humidity;
+    bool nodeEnabled;
+    Node(int idNodo, std::shared_ptr <IPStack> ipstack,std::shared_ptr<MQTT::Client<IPStack, Countdown>> client):id(idNodo), m_ipstack(ipstack), m_client(client),nodeEnabled(true){};
     float GetTemperature();
-    void UpdateTemperature();
-    void PublishTemperature();
+    float GetHumidity();
+    void UpdateSensors();
+    void InitTopics();
+    void PublishTopics(const char* topic,float value);
     void Connect();
     void Disconnect();
+#ifdef HW
     void HardwareInit();
+#endif
 private:
     std::shared_ptr <IPStack> m_ipstack;
     std::shared_ptr<MQTT::Client<IPStack, Countdown>> m_client;
 };
-void CallbackSubscriber(MQTT::MessageData& md)
+void CallbackStatus(MQTT::MessageData& md)
 {
     MQTT::Message &message = md.message;
 
+#ifdef DEBUG2
     printf("Message %d arrived: qos %d, retained %d, dup %d, packetid %d\n", 
 		++arrivedcount, message.qos, message.retained, message.dup, message.id);
-    printf("Payload %.*s\n", (int)message.payloadlen, (char*)message.payload);
+    printf("Topic Status updated:  %.*s\n", (int)message.payloadlen, (char*)message.payload);
+#endif    
     int val = atoi((char*)message.payload);
-    ( val == 0) ?sensorActivated=false:sensorActivated=true;
+    ( val == 0) ?nodeActivated=false:nodeActivated=true;
 }
-void TempSensor::Connect()
+
+
+void CallbackWater(MQTT::MessageData& md)
+{
+    MQTT::Message &message = md.message;
+
+#ifdef DEBUG2
+    printf("Message %d arrived: qos %d, retained %d, dup %d, packetid %d\n", 
+		++arrivedcount, message.qos, message.retained, message.dup, message.id);
+    printf("Topic water updated:  %.*s\n", (int)message.payloadlen, (char*)message.payload);
+#endif    
+    int val = atoi((char*)message.payload);
+    ( val == 0) ?water=false:water=true;
+}
+
+void CallbackQoS(MQTT::MessageData& md)
+{
+    MQTT::Message &message = md.message;
+#ifdef DEBUG2
+    printf("Message %d arrived: qos %d, retained %d, dup %d, packetid %d\n", 
+		++arrivedcount, message.qos, message.retained, message.dup, message.id);
+    printf("Topic Qos updated:  %.*s\n", (int)message.payloadlen, (char*)message.payload);
+#endif    
+    Qos = atoi((char*)message.payload);
+}
+
+void Node::Connect()
 {
     float version = 0.3;
     const char* topic = "temperature";
     printf("Version is %f\n", version);
     const char* broker_ip = "192.168.7.1";
     int port = 1883;
-    printf("Connecting to %s:%d\n", broker_ip,port);
+    printf("Node %d connecting to %s:%d\n",id, broker_ip,port);
     int rc = m_ipstack->connect(broker_ip, port);
 	if (rc != 0)
 	    printf("rc from TCP connect is %d\n", rc);
  
-    printf("MQTT connecting\n");
+#ifdef DEBUG2
+    printf("Node %d connecting\n", id);
+#endif
     MQTTPacket_connectData data = MQTTPacket_connectData_initializer;       
     data.MQTTVersion = 3;
     data.clientID.cstring = (char*)"mbed-icraggs";
@@ -59,55 +105,61 @@ void TempSensor::Connect()
     rc = m_client->connect(data);
 	if (rc != 0)
 	    printf("rc from MQTT connect is %d\n", rc);
-    printf("MQTT connected\n");
+#ifdef DEBUG2
+    printf("Node %d connected\n",id);
+#endif
 
-    rc = m_client->subscribe("status", MQTT::QOS2, CallbackSubscriber);
+    sprintf(topicStatus, "sensor/%d/status",id);
+    sprintf(topicWater, "sensor/%d/water",id);
+    sprintf(topicQoS, "sensor/%d/QoS",id);
+    rc = m_client->subscribe(topicStatus, MQTT::QOS2, CallbackStatus);
     if (rc != 0)
-        printf("rc from MQTT subscribe is %d\n", rc);
+        printf("Error subscribing in topic status is %d\n", rc);
+#ifdef SUBS
+    
+    rc = m_client->subscribe(topicWater, MQTT::QOS2, CallbackWater);
+    if (rc != 0)
+        printf("Error subscribing in topic water is %d\n", rc);
+    
+    rc = m_client->subscribe(topicQoS, MQTT::QOS2, CallbackQoS);
+    if (rc != 0)
+        printf("Error subscribing in topic QoS is %d\n", rc);
+#endif
 }
-void TempSensor::UpdateTemperature()
+void Node::UpdateSensors()
 {
-/* To check with pruio library if needed 
-    if(beaglebone_pruio_messages_are_available())
-    {
-        beaglebone_pruio_message message;
-        beaglebone_pruio_read_message(&message);
-        if(!message.is_gpio && message.adc_channel==1)
-        { 
-            printf("Temperature sensor in ADC channel 1 is %i \n", message.adc_channel, message.value);
-        }
-        else
-        {
-            printf("Analog pin %i changed to value %i \n", message.adc_channel, message.value);
-        }
-    }
-    else
-    {
-        temp = static_cast <float> (rand()) / static_cast <float> (3.3);
-        printf("No new analog data, generating randomly: temp = %f\n",temp);
-    }
-*/
+#ifdef HW
     FILE *cmd=popen("cat /sys/devices/ocp.3/helper.12/AIN4", "r");
     char result[24]={0x0};
     while (fgets(result, sizeof(result), cmd) !=NULL);
     pclose(cmd);
     temp = ((atoi(result)/2.0)/10.0);
+#else
+    temp = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/3.3));      
+    humidity = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/3.3));      
+#endif
 }
 
-float TempSensor::GetTemperature()
+float Node::GetTemperature()
 {
     return temp;
 }
 
-void TempSensor::PublishTemperature()
+float Node::GetHumidity()
+{
+    return humidity;
+}
+
+void Node::PublishTopics(const char* topic,float value)
 {
     MQTT::Message message;
-    const char* topic = "temperature";
-    UpdateTemperature();
-    float value = GetTemperature();
-    printf("Sending temperature: %f\n", value);
-    char buf[100];
-    sprintf(buf,"%f\n",value);
+    UpdateSensors();
+#ifdef DEBUG2
+    printf("Sending topic %s: %.2f\n",topic, value);
+#endif
+    //char buf[100];
+    char buf[2];
+    sprintf(buf,"%f",value);
     message.qos = MQTT::QOS2;
     message.retained = false;
     message.dup = false;
@@ -115,10 +167,10 @@ void TempSensor::PublishTemperature()
     message.payloadlen = strlen(buf)+1;
     int rc = m_client->publish(topic, message);
         if (rc != 0)
-                printf("Error %d from sending message with temperature\n", rc);
+                printf("Error %d from sending message with topic %s\n", rc,topic);
 
 }
-void TempSensor::Disconnect()
+void Node::Disconnect()
 {
     int rc = m_client->disconnect();
     if (rc != 0)
@@ -127,44 +179,87 @@ void TempSensor::Disconnect()
     m_ipstack->disconnect();
 }
 
-void  TempSensor::HardwareInit()
+#ifdef HW
+void  Node::HardwareInit()
 {
-/* To check with pruio lib if needed
     // Initialize library and hardware.
     beaglebone_pruio_start();
     beaglebone_pruio_init_adc_pin(1,12); 
-*/
-    
+}
+#endif
+
+void Node::InitTopics()
+{
+    sprintf(topicTemp, "sensor/%d/temp",id);
+    sprintf(topicHum, "sensor/%d/hum",id);
+    //sprintf(topicStatus, "sensor/%d/status",id);
+    //sprintf(topicWater, "sensor/%d/water",id);
+    //sprintf(topicQoS, "sensor/%d/QoS",id);
+#ifdef DEBUG2
+    printf("%s\n",topicTemp);
+    printf("%s\n",topicHum);
+    //printf("%s\n",topicStatus);
+    //printf("%s\n",topicWater);
+    //printf("%s\n",topicQoS);
+#endif
 }
 
-void CheckTemperature()
+
+void NodeThread(const int nodeId)
 {
     std::shared_ptr<IPStack> ipstack1 = std::make_shared<IPStack>();
     std::shared_ptr<MQTT::Client<IPStack, Countdown>> client1 = std::make_shared<MQTT::Client<IPStack, Countdown>>(*ipstack1);
-    TempSensor sensor1 = TempSensor(ipstack1,client1);
-    sensor1.HardwareInit();
-    sensor1.Connect();
-
-    while(sensorActivated)
+    const int id = nodeId; 
+    Node node = Node(id,ipstack1,client1);
+#ifdef DEBUG2
+    printf("Node %d is running\n",node.id);
+#endif
+#ifdef HW
+    node.HardwareInit();
+#endif
+#ifdef DEBUG2
+    printf("Node %d is configured\n",node.id);
+#endif
+    node.Connect();
+#ifdef DEBUG2
+    printf("Node %d is connected\n",node.id);
+#endif
+    node.InitTopics();
+#ifdef DEBUG2
+    printf("Node %d creating topics\n",node.id);
+#endif
+    while(1)
     {
-        sensor1.UpdateTemperature();
-        sensor1.PublishTemperature(); 
-        sleep(2); 
+#ifdef DEBUG2
+        printf("nodeActivated: %d\n",nodeActivated);
+#endif
+        node.UpdateSensors();
+        if(nodeActivated)
+        //if(true)
+        {
+            //node.UpdateSensors();
+            float value = node.GetTemperature();
+            node.PublishTopics(topicTemp,value); 
+            //node.PublishTopics("temperature",value); 
+            value = node.GetHumidity();
+            node.PublishTopics(topicHum,value); 
+            //node.PublishTopics("humidity",value); 
+            //sleep(PUBLISH_TIME); 
+       }
+       else
+       {
+           node.PublishTopics("sensor/alive",nodeActivated); 
+#ifdef DEBUG2
+           printf("Desconectado\n");
+#endif
+       }
+       sleep(PUBLISH_TIME); 
     }
-    sensor1.Disconnect();
-    //beaglebone_pruio_stop();
+    node.Disconnect();
 }
 int main(int argc, char* argv[])
 { 
-    //std::shared_ptr<IPStack> ipstack1 = std::make_shared<IPStack>();
-    //std::shared_ptr<MQTT::Client<IPStack, Countdown>> client1 = std::make_shared<MQTT::Client<IPStack, Countdown>>(*ipstack1);
-    //TempSensor sensor1 = TempSensor(ipstack1,client1);
-    //sensor1.Connect();
-    CheckTemperature();
-    //sensor1.UpdateTemperature();
-    //sensor1.PublishTemperature();  
-    
-    //sensor1.Disconnect();
+    NodeThread(argc);
     return 0;
 }
 
