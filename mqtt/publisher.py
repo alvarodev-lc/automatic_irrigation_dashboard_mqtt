@@ -72,7 +72,6 @@ def publish(client):
     topics.append(f"sensors/{temp_sensor_num}/temp")
     topics.append(f"sensors/{hum_sensor_num}/hum")
     while True:
-        print("inside")
         topic_num = 0
         messages = []
         time.sleep(0.1)
