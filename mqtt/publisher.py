@@ -10,7 +10,7 @@ from sensors.temperature_sensor import TemperatureSensor
 from sensors.humidity_sensor import HumiditySensor
 
 
-broker = 'localhost'
+broker = 'broker.emqx.io'
 port = 1883
 topics = []
 # generate client ID with pub prefix randomly

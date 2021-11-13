@@ -9,8 +9,7 @@ from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg, NavigationToolbar2Tk)
 from matplotlib.figure import Figure
 
-
-broker = 'localhost'
+broker = 'broker.emqx.io'
 port = 1883
 temp_topic = "sensor/+/temp"
 humidity_topic = "sensor/+/hum"
@@ -43,38 +42,48 @@ def subscribe(client: mqtt_client):
             update_dashboard_humidity(msg)
         elif msg.topic == "sensor/2/temp":
             temp_label_1.config(text=msg.payload.decode() + "%",
-                             fg="black")
+                                fg="black")
         elif msg.topic == "sensor/2/hum":
             hum_label_1.config(text=msg.payload.decode() + "%",
-                             fg="black")
+                               fg="black")
         elif msg.topic == "sensor/3/temp":
             temp_label_2.config(text=msg.payload.decode() + "%",
-                             fg="black")
+                                fg="black")
         elif msg.topic == "sensor/3/hum":
             hum_label_2.config(text=msg.payload.decode() + "%",
-                             fg="black")
+                               fg="black")
         elif msg.topic == "sensor/4/temp":
             temp_label_3.config(text=msg.payload.decode() + "%",
-                             fg="black")
+                                fg="black")
         elif msg.topic == "sensor/4/hum":
             hum_label_3.config(text=msg.payload.decode() + "%",
-                             fg="black")
+                               fg="black")
         elif msg.topic == "sensor/5/temp":
             temp_label_4.config(text=msg.payload.decode() + "%",
-                             fg="black")
+                                fg="black")
         elif msg.topic == "sensor/5/hum":
             hum_label_4.config(text=msg.payload.decode() + "%",
-                             fg="black")
+                               fg="black")
         print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
 
     client.subscribe(temp_topic)
     client.subscribe(humidity_topic)
     client.on_message = on_message
 
+def publish(client, status, sensor_num):
+    topic = f"sensor/{sensor_num}/status"
+    msg = status
+    result = client.publish(topic, msg)
+    # result: [0, 1]
+    status = result[0]
+    if status == 0:
+        print(f"Send `{msg}` to topic `{topic}`")
+    else:
+        print(f"Failed to send message to topic {topic}")
+
 #############
 # Dashboard #
 #############
-
 
 def update_dashboard_temp(msg):
     temp_label.config(text=msg.payload.decode() + " °C",
@@ -88,15 +97,15 @@ def update_dashboard_humidity(msg):
 
 def update_graph(msg):
     # Swipe al values to the left
-    x[:] = x[1:5]+x[0:1]
-    y[:] = y[1:5]+y[0:1]
+    x[:] = x[1:5] + x[0:1]
+    y[:] = y[1:5] + y[0:1]
     # Then update the last value for the graph
     x[len(x) - 1] = float(x[len(x) - 2] + 0.1)
     y[len(y) - 1] = float(msg.payload.decode())
 
     # Replot the graph
     plt.cla()
-    subplot.set_xlim(0.1 + x[len(x)-1] - 2, x[len(x)-1])
+    subplot.set_xlim(0.1 + x[len(x) - 1] - 2, x[len(x) - 1])
     subplot.set_ylim(20, 40)
     subplot.plot(x, y, c=line_color)
     graph_canvas.draw()
@@ -146,10 +155,10 @@ canvas2_1.create_image(0, 0, anchor=NW, image=img2_1)
 
 # Label for temperature
 temp_label_1 = Label(window,
-                   text=" °C",
-                   bg="white",
-                   fg="black",
-                   font=("Helvetica", 32))
+                     text=" °C",
+                     bg="white",
+                     fg="black",
+                     font=("Helvetica", 32))
 
 temp_label_1.place(x=510, y=190)
 
@@ -165,10 +174,10 @@ canvas2_2.create_image(0, 0, anchor=NW, image=img2_2)
 
 # Label for temperature
 temp_label_2 = Label(window,
-                   text=" °C",
-                   bg="white",
-                   fg="black",
-                   font=("Helvetica", 32))
+                     text=" °C",
+                     bg="white",
+                     fg="black",
+                     font=("Helvetica", 32))
 
 temp_label_2.place(x=840, y=190)
 
@@ -184,10 +193,10 @@ canvas2_3.create_image(0, 0, anchor=NW, image=img2_3)
 
 # Label for temperature
 temp_label_3 = Label(window,
-                   text=" °C",
-                   bg="white",
-                   fg="black",
-                   font=("Helvetica", 32))
+                     text=" °C",
+                     bg="white",
+                     fg="black",
+                     font=("Helvetica", 32))
 
 temp_label_3.place(x=1170, y=190)
 
@@ -203,10 +212,10 @@ canvas2_4.create_image(0, 0, anchor=NW, image=img2_4)
 
 # Label for temperature
 temp_label_4 = Label(window,
-                   text=" °C",
-                   bg="white",
-                   fg="black",
-                   font=("Helvetica", 32))
+                     text=" °C",
+                     bg="white",
+                     fg="black",
+                     font=("Helvetica", 32))
 
 temp_label_4.place(x=1500, y=190)
 
@@ -222,10 +231,10 @@ canvas3.create_image(0, 0, anchor=NW, image=img3)
 
 # Label for humidity
 hum_label = Label(window,
-                   text=" %",
-                   bg="white",
-                   fg="black",
-                   font=("Helvetica", 32))
+                  text=" %",
+                  bg="white",
+                  fg="black",
+                  font=("Helvetica", 32))
 
 hum_label.place(x=180, y=325)
 
@@ -241,10 +250,10 @@ canvas3_1.create_image(0, 0, anchor=NW, image=img3_1)
 
 # Label for humidity
 hum_label_1 = Label(window,
-                   text=" %",
-                   bg="white",
-                   fg="black",
-                   font=("Helvetica", 32))
+                    text=" %",
+                    bg="white",
+                    fg="black",
+                    font=("Helvetica", 32))
 
 hum_label_1.place(x=510, y=325)
 
@@ -260,10 +269,10 @@ canvas3_2.create_image(0, 0, anchor=NW, image=img3_2)
 
 # Label for humidity
 hum_label_2 = Label(window,
-                   text=" %",
-                   bg="white",
-                   fg="black",
-                   font=("Helvetica", 32))
+                    text=" %",
+                    bg="white",
+                    fg="black",
+                    font=("Helvetica", 32))
 
 hum_label_2.place(x=840, y=325)
 
@@ -279,10 +288,10 @@ canvas3_3.create_image(0, 0, anchor=NW, image=img3_3)
 
 # Label for humidity
 hum_label_3 = Label(window,
-                   text=" %",
-                   bg="white",
-                   fg="black",
-                   font=("Helvetica", 32))
+                    text=" %",
+                    bg="white",
+                    fg="black",
+                    font=("Helvetica", 32))
 
 hum_label_3.place(x=1170, y=325)
 
@@ -298,12 +307,149 @@ canvas3_4.create_image(0, 0, anchor=NW, image=img3_4)
 
 # Label for humidity
 hum_label_4 = Label(window,
-                   text=" %",
-                   bg="white",
-                   fg="black",
-                   font=("Helvetica", 32))
+                    text=" %",
+                    bg="white",
+                    fg="black",
+                    font=("Helvetica", 32))
 
 hum_label_4.place(x=1500, y=325)
+
+
+def switch():
+    global is_on
+    if is_on:
+        on_button.config(image=off)
+        print("Button is off now")
+        publish(client, "0", "1")
+        is_on = False
+    else:
+        on_button.config(image=on)
+        print("Button is On now")
+        publish(client, "1", "1")
+        is_on = True
+
+
+is_on = False
+on = Image.open("../images/button_on.png")
+resized_img = on.resize((100, 100), Image.ANTIALIAS)
+on = ImageTk.PhotoImage(resized_img)
+
+off = Image.open("../images/button_off.png")
+resized_img = off.resize((100, 100), Image.ANTIALIAS)
+off = ImageTk.PhotoImage(resized_img)
+# Create A Button
+on_button = Button(window, image=off, bd=10,
+                   command=switch)
+on_button.place(x=57, y=480)
+
+
+def switch1():
+    global is_on1
+    if is_on1:
+        on_button_1.config(image=off_1)
+        print("Button1 is off now")
+        publish(client, "0", "2")
+        is_on1 = False
+    else:
+        on_button_1.config(image=on_1)
+        print("Button1 is On now")
+        publish(client, "1", "2")
+        is_on1 = True
+
+
+is_on1 = False
+on_1 = Image.open("../images/button_on.png")
+resized_img = on_1.resize((100, 100), Image.ANTIALIAS)
+on_1 = ImageTk.PhotoImage(resized_img)
+
+off_1 = Image.open("../images/button_off.png")
+resized_img = off_1.resize((100, 100), Image.ANTIALIAS)
+off_1 = ImageTk.PhotoImage(resized_img)
+# Create A Button
+on_button_1 = Button(window, image=off_1, bd=10,
+                     command=switch1)
+on_button_1.place(x=387, y=480)
+
+def switch2():
+    global is_on2
+    if is_on2:
+        on_button_2.config(image=off_2)
+        print("Button2 is off now")
+        publish(client, "0", "3")
+        is_on2 = False
+    else:
+        on_button_2.config(image=on_2)
+        print("Button2 is On now")
+        publish(client, "1", "3")
+        is_on2 = True
+
+
+is_on2 = False
+on_2 = Image.open("../images/button_on.png")
+resized_img = on_2.resize((100, 100), Image.ANTIALIAS)
+on_2 = ImageTk.PhotoImage(resized_img)
+
+off_2 = Image.open("../images/button_off.png")
+resized_img = off_2.resize((100, 100), Image.ANTIALIAS)
+off_2 = ImageTk.PhotoImage(resized_img)
+# Create A Button
+on_button_2 = Button(window, image=off_2, bd=10,
+                     command=switch2)
+on_button_2.place(x=717, y=480)
+
+def switch3():
+    global is_on3
+    if is_on3:
+        on_button_3.config(image=off_3)
+        print("Button3 is off now")
+        publish(client, "0", "4")
+        is_on3 = False
+    else:
+        on_button_3.config(image=on_3)
+        print("Button3 is On now")
+        publish(client, "1", "4")
+        is_on3 = True
+
+
+is_on3 = False
+on_3 = Image.open("../images/button_on.png")
+resized_img = on_3.resize((100, 100), Image.ANTIALIAS)
+on_3 = ImageTk.PhotoImage(resized_img)
+
+off_3 = Image.open("../images/button_off.png")
+resized_img = off_3.resize((100, 100), Image.ANTIALIAS)
+off_3 = ImageTk.PhotoImage(resized_img)
+# Create A Button
+on_button_3 = Button(window, image=off_3, bd=10,
+                     command=switch3)
+on_button_3.place(x=1047, y=480)
+
+def switch4():
+    global is_on4
+    if is_on4:
+        on_button_4.config(image=off_4)
+        print("Button4 is off now")
+        publish(client, "0", "5")
+        is_on4 = False
+    else:
+        on_button_4.config(image=on_4)
+        print("Button4 is On now")
+        publish(client, "1", "5")
+        is_on4 = True
+
+
+is_on4 = False
+on_4 = Image.open("../images/button_on.png")
+resized_img = on_4.resize((100, 100), Image.ANTIALIAS)
+on_4 = ImageTk.PhotoImage(resized_img)
+
+off_4 = Image.open("../images/button_off.png")
+resized_img = off_4.resize((100, 100), Image.ANTIALIAS)
+off_4 = ImageTk.PhotoImage(resized_img)
+# Create A Button
+on_button_4 = Button(window, image=off_4, bd=10,
+                     command=switch4)
+on_button_4.place(x=1377, y=480)
 
 # Real time graph
 line_color = "r"
