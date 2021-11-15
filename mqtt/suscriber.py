@@ -13,6 +13,7 @@ broker = 'localhost'
 port = 1883
 temp_topic = "sensor/+/temp"
 humidity_topic = "sensor/+/hum"
+water_topic = "sensor/+/water"
 # generate client ID with public prefix randomly
 client_id = f'python-mqtt-{random.randint(0, 100000)}'
 username = 'local'
@@ -35,17 +36,19 @@ def connect_mqtt() -> mqtt_client:
 
 def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
-        split_msg = msg.payload.decode().split("\\")[0]
-
-        char_num = 0
         parsed_msg = ""
-        for char in split_msg:
-            if char_num < 5:
-                if char.isdigit():
-                    parsed_msg += char
-                elif char == ".":
-                    parsed_msg += char
-                char_num += 1
+        if "water" not in msg.topic:
+            split_msg = msg.payload.decode().split("\\")[0]
+
+            char_num = 0
+            parsed_msg = ""
+            for char in split_msg:
+                if char_num < 5:
+                    if char.isdigit():
+                        parsed_msg += char
+                    elif char == ".":
+                        parsed_msg += char
+                    char_num += 1
         if msg.topic == "sensor/1/temp":
             temp_label.config(text=parsed_msg + "%",
                                 fg="black")
@@ -91,6 +94,7 @@ def subscribe(client: mqtt_client):
 
     client.subscribe(temp_topic)
     client.subscribe(humidity_topic)
+    client.subscribe(water_topic)
     client.on_message = on_message
 
 def publish(client, status, sensor_num):
@@ -475,7 +479,7 @@ def switch_led():
 # Watering led 1
 r_is_on = False
 ron = Image.open("../images/led_on.png")
-resized_img = ron.resize((60, 60), Image.ANTIALIAS)
+resized_img = ron.resize((75, 75), Image.ANTIALIAS)
 ron = ImageTk.PhotoImage(resized_img)
 
 roff = Image.open("../images/led_off.png")
@@ -496,7 +500,7 @@ def switch_led1():
 # Watering led 2
 r_is_on_1 = False
 ron_1 = Image.open("../images/led_on.png")
-resized_img = ron_1.resize((60, 60), Image.ANTIALIAS)
+resized_img = ron_1.resize((75, 75), Image.ANTIALIAS)
 ron_1 = ImageTk.PhotoImage(resized_img)
 
 roff_1 = Image.open("../images/led_off.png")
@@ -517,7 +521,7 @@ def switch_led2():
 # Watering led 3
 r_is_on_2 = False
 ron_2 = Image.open("../images/led_on.png")
-resized_img = ron_2.resize((60, 60), Image.ANTIALIAS)
+resized_img = ron_2.resize((75, 75), Image.ANTIALIAS)
 ron_2 = ImageTk.PhotoImage(resized_img)
 
 roff_2 = Image.open("../images/led_off.png")
@@ -538,7 +542,7 @@ def switch_led3():
 # Watering led 4
 r_is_on_3 = False
 ron_3 = Image.open("../images/led_on.png")
-resized_img = ron_3.resize((60, 60), Image.ANTIALIAS)
+resized_img = ron_3.resize((75, 75), Image.ANTIALIAS)
 ron_3 = ImageTk.PhotoImage(resized_img)
 
 roff_3 = Image.open("../images/led_off.png")
@@ -559,7 +563,7 @@ def switch_led4():
 # Watering led 5
 r_is_on_4= False
 ron_4 = Image.open("../images/led_on.png")
-resized_img = ron_4.resize((60, 60), Image.ANTIALIAS)
+resized_img = ron_4.resize((75, 75), Image.ANTIALIAS)
 ron_4 = ImageTk.PhotoImage(resized_img)
 
 roff_4 = Image.open("../images/led_off.png")
