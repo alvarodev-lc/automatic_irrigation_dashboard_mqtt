@@ -52,7 +52,7 @@ def subscribe(client: mqtt_client):
         if msg.topic == "sensor/1/temp":
             temp_label.config(text=parsed_msg + "%",
                                 fg="black")
-            update_graph(parsed_msg)
+            update_graph(msg)
         elif msg.topic == "sensor/1/hum":
             hum_label.config(text=parsed_msg + "%",
                               fg="black")
@@ -118,7 +118,20 @@ def update_graph(msg):
     y[:] = y[1:5] + y[0:1]
     # Then update the last value for the graph
     x[len(x) - 1] = float(x[len(x) - 2] + 0.1)
-    y[len(y) - 1] = float(msg.payload.decode().split("\\")[0])
+    parsed_msg = ""
+    if "water" not in msg.topic:
+        split_msg = msg.payload.decode().split("\\")[0]
+
+        char_num = 0
+        parsed_msg = ""
+        for char in split_msg:
+            if char_num < 5:
+                if char.isdigit():
+                    parsed_msg += char
+                elif char == ".":
+                    parsed_msg += char
+                char_num += 1
+    y[len(y) - 1] = float(parsed_msg)
 
     # Replot the graph
     plt.cla()
