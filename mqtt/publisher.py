@@ -42,7 +42,6 @@ def publish(client):
     global sensor_num_set
 
     if not sensor_num_set:
-        print("Setting topic...")
         # Set temperature sensor number
         try:
             file = open("temp_sensor_num.txt", 'r')
@@ -74,10 +73,7 @@ def publish(client):
         topics.append(f"sensor/{temp_sensor_num}/temp")
         topics.append(f"sensor/{hum_sensor_num}/hum")
         status_topic.append(f"sensor/{temp_sensor_num}/status")
-        print(topics)
-        print(status_topic)
         sensor_num_set = True
-
 
     if status_m == 1:
         topic_num = 0

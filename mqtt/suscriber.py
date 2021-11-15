@@ -52,7 +52,7 @@ def subscribe(client: mqtt_client):
         if msg.topic == "sensor/1/temp":
             temp_label.config(text=parsed_msg + "%",
                                 fg="black")
-            update_graph(msg)
+            update_graph(parsed_msg)
         elif msg.topic == "sensor/1/hum":
             hum_label.config(text=parsed_msg + "%",
                               fg="black")
