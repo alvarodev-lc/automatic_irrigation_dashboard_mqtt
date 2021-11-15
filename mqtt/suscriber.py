@@ -90,7 +90,10 @@ def subscribe(client: mqtt_client):
             switch_led3()
         elif msg.topic == "sensor/5/water":
             switch_led4()
-        print(f"Received `{parsed_msg}` from `{msg.topic}` topic")
+        if "water" in msg.topic:
+            print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
+        else:
+            print(f"Received `{parsed_msg}` from `{msg.topic}` topic")
 
     client.subscribe(temp_topic)
     client.subscribe(humidity_topic)
