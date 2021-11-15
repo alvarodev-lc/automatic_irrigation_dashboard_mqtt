@@ -17,7 +17,9 @@ topics = []
 client_id = f'python-mqtt-{random.randint(0, 1000)}'
 username = 'local'
 password = 'localpw'
-
+status_topic = []
+status_m = 0
+sensor_num_set = False
 
 def connect_mqtt():
     def on_connect(client, userdata, flags, rc):
@@ -37,45 +39,50 @@ def publish(client):
     temperature_sensor = TemperatureSensor()
     humidity_sensor = HumiditySensor()
     msg_count = 0
+    global sensor_num_set
 
-    # Set temperature sensor number
-    try:
-        file = open("temp_sensor_num.txt", 'r')
-        filedata = file.read()
-        print(filedata)
-        temp_sensor_num = int(filedata) + 1
-        print(temp_sensor_num)
-        file = open("temp_sensor_num.txt", 'w')
-        file.write(str(temp_sensor_num))
-        file.flush()
-    except IOError:
-        file = open("temp_sensor_num.txt", 'w')
-        file.write("1")
-        file.flush()
-        temp_sensor_num = 1
+    if not sensor_num_set:
+        print("Setting topic...")
+        # Set temperature sensor number
+        try:
+            file = open("temp_sensor_num.txt", 'r')
+            filedata = file.read()
+            temp_sensor_num = int(filedata) + 1
+            file = open("temp_sensor_num.txt", 'w')
+            file.write(str(temp_sensor_num))
+            file.flush()
+        except IOError:
+            file = open("temp_sensor_num.txt", 'w')
+            file.write("1")
+            file.flush()
+            temp_sensor_num = 1
 
-    # Set humidity sensor number
-    try:
-        file = open("hum_sensor_num.txt", 'r')
-        filedata = file.read()
-        print(filedata)
-        hum_sensor_num = int(filedata) + 1
-        print(hum_sensor_num)
-        file = open("hum_sensor_num.txt", 'w')
-        file.write(str(hum_sensor_num))
-        file.flush()
-    except IOError:
-        file = open("hum_sensor_num.txt", 'w')
-        file.write("1")
-        file.flush()
-        hum_sensor_num = 1
+        # Set humidity sensor number
+        try:
+            file = open("hum_sensor_num.txt", 'r')
+            filedata = file.read()
+            hum_sensor_num = int(filedata) + 1
+            file = open("hum_sensor_num.txt", 'w')
+            file.write(str(hum_sensor_num))
+            file.flush()
+        except IOError:
+            file = open("hum_sensor_num.txt", 'w')
+            file.write("1")
+            file.flush()
+            hum_sensor_num = 1
 
-    topics.append(f"sensor/{temp_sensor_num}/temp")
-    topics.append(f"sensor/{hum_sensor_num}/hum")
-    while True:
+        topics.append(f"sensor/{temp_sensor_num}/temp")
+        topics.append(f"sensor/{hum_sensor_num}/hum")
+        status_topic.append(f"sensor/{temp_sensor_num}/status")
+        print(topics)
+        print(status_topic)
+        sensor_num_set = True
+
+
+    if status_m == 1:
         topic_num = 0
         messages = []
-        time.sleep(0.1)
+        time.sleep(0.5)
         temp = temperature_sensor.read_temperature()
         messages.append(temp)
         humidity = humidity_sensor.read_humidity()
@@ -92,11 +99,25 @@ def publish(client):
             msg_count += 1
             topic_num += 1
 
+def subscribe(client: mqtt_client):
+    def on_message(client, userdata, msg):
+        if msg.topic == status_topic[0]:
+            global status_m
+            if msg.payload.decode() == "0":
+                status_m = 0
+            else:
+                status_m = 1
+            print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
+
+    client.subscribe(status_topic[0])
+    client.on_message = on_message
 
 def run():
     client = connect_mqtt()
     client.loop_start()
-    publish(client)
+    while True:
+        publish(client)
+        subscribe(client)
 
 
 if __name__ == '__main__':

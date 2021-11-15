@@ -9,7 +9,7 @@ from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg)
 from matplotlib.figure import Figure
 
-broker = 'broker.emqx.io'
+broker = 'localhost'
 port = 1883
 temp_topic = "sensor/+/temp"
 humidity_topic = "sensor/+/hum"
