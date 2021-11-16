@@ -613,7 +613,7 @@ ron_button_4 = canvasl_4.create_image(0, 0, anchor=NW, image=roff_4)
 
 # Real time graph
 line_color = "r"
-fig = Figure(figsize=(4, 3), dpi=100)
+fig = Figure(figsize=(5, 3), dpi=100)
 fig.patch.set_facecolor("grey")
 fig.suptitle("Sensor1 temperature")
 t = 0.1
@@ -621,10 +621,11 @@ x = [0, 0, 0, 0, 0]
 y = [0, 0, 0, 0, 0]
 subplot = fig.add_subplot(111)
 subplot.plot(x, y, c=line_color)
+subplot.set_ylabel("ºC")
 
 graph_canvas = FigureCanvasTkAgg(fig, master=window)  # A tk.DrawingArea.
 graph_canvas.draw()
-graph_canvas.get_tk_widget().pack(side=BOTTOM)
+graph_canvas.get_tk_widget().pack(side=BOTTOM, pady=10)
 
 client = connect_mqtt()
 subscribe(client)
