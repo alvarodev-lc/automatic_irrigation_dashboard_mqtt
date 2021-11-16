@@ -49,6 +49,13 @@ def subscribe(client: mqtt_client):
                     elif char == ".":
                         parsed_msg += char
                     char_num += 1
+        elif "water" in msg.topic:
+            i = 0
+            for char in msg.payload.decode():
+                if i == 0 and char.isdigit():
+                    parsed_msg += char
+                else:
+                    break
         if msg.topic == "sensor/1/temp":
             temp_label.config(text=parsed_msg + "%",
                                 fg="black")
@@ -81,15 +88,15 @@ def subscribe(client: mqtt_client):
             hum_label_4.config(text=parsed_msg + "%",
                                fg="black")
         elif msg.topic == "sensor/1/water":
-            switch_led()
+            switch_led(parsed_msg)
         elif msg.topic == "sensor/2/water":
-            switch_led1()
+            switch_led1(parsed_msg)
         elif msg.topic == "sensor/3/water":
-            switch_led2()
+            switch_led2(parsed_msg)
         elif msg.topic == "sensor/4/water":
-            switch_led3()
+            switch_led3(parsed_msg)
         elif msg.topic == "sensor/5/water":
-            switch_led4()
+            switch_led4(parsed_msg)
         if "water" in msg.topic:
             print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
         else:
@@ -486,12 +493,12 @@ on_button_4 = Button(window, image=off_4, bd=10,
                      command=switch4)
 on_button_4.place(x=1377, y=480)
 
-def switch_led():
+def switch_led(msg):
     global r_is_on
-    if r_is_on:
+    if msg == "1":
         canvasl.itemconfig(ron_button, image=ron)
         r_is_on = False
-    else:
+    elif msg == "0":
         canvasl.itemconfig(ron_button, image=roff)
         r_is_on = True
 # Watering led 1
@@ -509,12 +516,12 @@ canvasl.config(highlightthickness=0)
 canvasl.place(x=77, y=630)
 ron_button = canvasl.create_image(0, 0, anchor=NW, image=roff)
 
-def switch_led1():
+def switch_led1(msg):
     global r_is_on_1
-    if r_is_on_1:
+    if msg == "1":
         canvasl_1.itemconfig(ron_button_1, image=ron_1)
         r_is_on_1 = False
-    else:
+    elif msg == "0":
         canvasl_1.itemconfig(ron_button_1, image=roff_1)
         r_is_on_1 = True
 # Watering led 2
@@ -534,12 +541,12 @@ canvasl_1.place(x=407, y=630)
 ron_button_1 = canvasl_1.create_image(0, 0, anchor=NW, image=roff_1)
 
 
-def switch_led2():
+def switch_led2(msg):
     global r_is_on_2
-    if r_is_on_2:
+    if msg == "1":
         canvasl_2.itemconfig(ron_button_2, image=ron_2)
         r_is_on_2 = False
-    else:
+    elif msg == "0":
         canvasl_2.itemconfig(ron_button_2, image=roff_2)
         r_is_on_2 = True
 # Watering led 3
@@ -557,12 +564,12 @@ canvasl_2.config(highlightthickness=0)
 canvasl_2.place(x=737, y=630)
 ron_button_2 = canvasl_2.create_image(0, 0, anchor=NW, image=roff_2)
 
-def switch_led3():
+def switch_led3(msg):
     global r_is_on_3
-    if r_is_on_3:
+    if msg == "1":
         canvasl_3.itemconfig(ron_button_3, image=ron_3)
         r_is_on_3 = False
-    else:
+    elif msg == "0":
         canvasl_3.itemconfig(ron_button_3, image=roff_3)
         r_is_on_3 = True
 # Watering led 4
@@ -580,12 +587,12 @@ canvasl_3.config(highlightthickness=0)
 canvasl_3.place(x=1067, y=630)
 ron_button_3 = canvasl_3.create_image(0, 0, anchor=NW, image=roff_3)
 
-def switch_led4():
+def switch_led4(msg):
     global r_is_on_4
-    if r_is_on_4:
+    if msg == "1":
         canvasl_4.itemconfig(ron_button_4, image=ron_4)
         r_is_on_4 = False
-    else:
+    elif msg == "0":
         canvasl_4.itemconfig(ron_button_4, image=roff_4)
         r_is_on_4 = True
 # Watering led 5
