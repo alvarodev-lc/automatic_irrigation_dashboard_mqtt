@@ -49,13 +49,6 @@ def subscribe(client: mqtt_client):
                     elif char == ".":
                         parsed_msg += char
                     char_num += 1
-        elif "water" in msg.topic:
-            i = 0
-            for char in msg.payload.decode():
-                if i == 0 and char.isdigit():
-                    parsed_msg += char
-                else:
-                    break
         if msg.topic == "sensor/1/temp":
             temp_label.config(text=parsed_msg + "%",
                                 fg="black")
