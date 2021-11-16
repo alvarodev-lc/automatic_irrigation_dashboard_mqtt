@@ -146,19 +146,21 @@ def update_graph(msg):
 
 window = Tk()
 window.title("MQTT Dashboard")
-window.geometry("1024x720")
-window.configure(bg="white")
+window.geometry("1920x1080")
+window.configure(bg="grey")
 
 # Base canvas
-canvas = Canvas(window, bg="white", width=720, height=720)
+canvas = Canvas(window, bg="grey", width=1920, height=1080)
 # To erase the border of the canvas
 canvas.config(highlightthickness=0)
-canvas.place(x=0, y=0)
-img = PhotoImage(file="../images/logo_test.png")
+canvas.place(x=65, y=10)
+img = Image.open("../images/upm_logo.png")
+resized_img = img.resize((330, 130), Image.ANTIALIAS)
+img = ImageTk.PhotoImage(resized_img)
 canvas.create_image(0, 0, anchor=NW, image=img)
 
 # Temperature canvas 1
-canvas2 = Canvas(window, bg="white", width=100, height=100)
+canvas2 = Canvas(window, bg="grey", width=100, height=100)
 # To erase the border of the canvas
 canvas2.config(highlightthickness=0)
 canvas2.place(x=50, y=165)
@@ -170,14 +172,14 @@ canvas2.create_image(0, 0, anchor=NW, image=img2)
 # Label for temperature
 temp_label = Label(window,
                    text=" °C",
-                   bg="white",
+                   bg="grey",
                    fg="black",
                    font=("Helvetica", 32))
 
 temp_label.place(x=180, y=190)
 
 # Temperature canvas 2
-canvas2_1 = Canvas(window, bg="white", width=100, height=100)
+canvas2_1 = Canvas(window, bg="grey", width=100, height=100)
 # To erase the border of the canvas
 canvas2_1.config(highlightthickness=0)
 canvas2_1.place(x=380, y=165)
@@ -189,14 +191,14 @@ canvas2_1.create_image(0, 0, anchor=NW, image=img2_1)
 # Label for temperature
 temp_label_1 = Label(window,
                      text=" °C",
-                     bg="white",
+                     bg="grey",
                      fg="black",
                      font=("Helvetica", 32))
 
 temp_label_1.place(x=510, y=190)
 
 # Temperature canvas 3
-canvas2_2 = Canvas(window, bg="white", width=100, height=100)
+canvas2_2 = Canvas(window, bg="grey", width=100, height=100)
 # To erase the border of the canvas
 canvas2_2.config(highlightthickness=0)
 canvas2_2.place(x=710, y=165)
@@ -208,14 +210,14 @@ canvas2_2.create_image(0, 0, anchor=NW, image=img2_2)
 # Label for temperature
 temp_label_2 = Label(window,
                      text=" °C",
-                     bg="white",
+                     bg="grey",
                      fg="black",
                      font=("Helvetica", 32))
 
 temp_label_2.place(x=840, y=190)
 
 # Temperature canvas 4
-canvas2_3 = Canvas(window, bg="white", width=100, height=100)
+canvas2_3 = Canvas(window, bg="grey", width=100, height=100)
 # To erase the border of the canvas
 canvas2_3.config(highlightthickness=0)
 canvas2_3.place(x=1040, y=165)
@@ -227,14 +229,14 @@ canvas2_3.create_image(0, 0, anchor=NW, image=img2_3)
 # Label for temperature
 temp_label_3 = Label(window,
                      text=" °C",
-                     bg="white",
+                     bg="grey",
                      fg="black",
                      font=("Helvetica", 32))
 
 temp_label_3.place(x=1170, y=190)
 
 # Temperature canvas 5
-canvas2_4 = Canvas(window, bg="white", width=100, height=100)
+canvas2_4 = Canvas(window, bg="grey", width=100, height=100)
 # To erase the border of the canvas
 canvas2_4.config(highlightthickness=0)
 canvas2_4.place(x=1370, y=165)
@@ -246,14 +248,14 @@ canvas2_4.create_image(0, 0, anchor=NW, image=img2_4)
 # Label for temperature
 temp_label_4 = Label(window,
                      text=" °C",
-                     bg="white",
+                     bg="grey",
                      fg="black",
                      font=("Helvetica", 32))
 
 temp_label_4.place(x=1500, y=190)
 
 # Humidity canvas 1
-canvas3 = Canvas(window, bg="white", width=100, height=100)
+canvas3 = Canvas(window, bg="grey", width=100, height=100)
 # To erase the border of the canvas
 canvas3.config(highlightthickness=0)
 canvas3.place(x=67, y=297)
@@ -265,14 +267,14 @@ canvas3.create_image(0, 0, anchor=NW, image=img3)
 # Label for humidity
 hum_label = Label(window,
                   text=" %",
-                  bg="white",
+                  bg="grey",
                   fg="black",
                   font=("Helvetica", 32))
 
 hum_label.place(x=180, y=325)
 
 # Humidity canvas 2
-canvas3_1 = Canvas(window, bg="white", width=100, height=100)
+canvas3_1 = Canvas(window, bg="grey", width=100, height=100)
 # To erase the border of the canvas
 canvas3_1.config(highlightthickness=0)
 canvas3_1.place(x=397, y=297)
@@ -284,14 +286,14 @@ canvas3_1.create_image(0, 0, anchor=NW, image=img3_1)
 # Label for humidity
 hum_label_1 = Label(window,
                     text=" %",
-                    bg="white",
+                    bg="grey",
                     fg="black",
                     font=("Helvetica", 32))
 
 hum_label_1.place(x=510, y=325)
 
 # Humidity canvas 3
-canvas3_2 = Canvas(window, bg="white", width=100, height=100)
+canvas3_2 = Canvas(window, bg="grey", width=100, height=100)
 # To erase the border of the canvas
 canvas3_2.config(highlightthickness=0)
 canvas3_2.place(x=727, y=297)
@@ -303,14 +305,14 @@ canvas3_2.create_image(0, 0, anchor=NW, image=img3_2)
 # Label for humidity
 hum_label_2 = Label(window,
                     text=" %",
-                    bg="white",
+                    bg="grey",
                     fg="black",
                     font=("Helvetica", 32))
 
 hum_label_2.place(x=840, y=325)
 
 # Humidity canvas 4
-canvas3_3 = Canvas(window, bg="white", width=100, height=100)
+canvas3_3 = Canvas(window, bg="grey", width=100, height=100)
 # To erase the border of the canvas
 canvas3_3.config(highlightthickness=0)
 canvas3_3.place(x=1057, y=297)
@@ -322,14 +324,14 @@ canvas3_3.create_image(0, 0, anchor=NW, image=img3_3)
 # Label for humidity
 hum_label_3 = Label(window,
                     text=" %",
-                    bg="white",
+                    bg="grey",
                     fg="black",
                     font=("Helvetica", 32))
 
 hum_label_3.place(x=1170, y=325)
 
 # Humidity canvas 5
-canvas3_4 = Canvas(window, bg="white", width=100, height=100)
+canvas3_4 = Canvas(window, bg="grey", width=100, height=100)
 # To erase the border of the canvas
 canvas3_4.config(highlightthickness=0)
 canvas3_4.place(x=1387, y=297)
@@ -341,7 +343,7 @@ canvas3_4.create_image(0, 0, anchor=NW, image=img3_4)
 # Label for humidity
 hum_label_4 = Label(window,
                     text=" %",
-                    bg="white",
+                    bg="grey",
                     fg="black",
                     font=("Helvetica", 32))
 
@@ -487,13 +489,14 @@ on_button_4.place(x=1377, y=480)
 def switch_led():
     global r_is_on
     if r_is_on:
-        ron_button.config(image=roff)
+        canvasl.itemconfig(ron_button, image=ron)
         r_is_on = False
     else:
-        ron_button.config(image=ron)
+        canvasl.itemconfig(ron_button, image=roff)
         r_is_on = True
 # Watering led 1
 r_is_on = False
+canvasl = Canvas(window, bg="grey", width=75, height=75)
 ron = Image.open("../images/led_on.png")
 resized_img = ron.resize((75, 75), Image.ANTIALIAS)
 ron = ImageTk.PhotoImage(resized_img)
@@ -502,19 +505,21 @@ roff = Image.open("../images/led_off.png")
 resized_img = roff.resize((75, 75), Image.ANTIALIAS)
 roff = ImageTk.PhotoImage(resized_img)
 # Create A Button
-ron_button = Button(window, image=roff, bd=0)
-ron_button.place(x=77, y=630)
+canvasl.config(highlightthickness=0)
+canvasl.place(x=77, y=630)
+ron_button = canvasl.create_image(0, 0, anchor=NW, image=roff)
 
 def switch_led1():
     global r_is_on_1
     if r_is_on_1:
-        ron_button_1.config(image=roff_1)
+        canvasl_1.itemconfig(ron_button_1, image=ron_1)
         r_is_on_1 = False
     else:
-        ron_button_1.config(image=ron_1)
+        canvasl_1.itemconfig(ron_button_1, image=roff_1)
         r_is_on_1 = True
 # Watering led 2
 r_is_on_1 = False
+canvasl_1 = Canvas(window, bg="grey", width=75, height=75)
 ron_1 = Image.open("../images/led_on.png")
 resized_img = ron_1.resize((75, 75), Image.ANTIALIAS)
 ron_1 = ImageTk.PhotoImage(resized_img)
@@ -523,19 +528,23 @@ roff_1 = Image.open("../images/led_off.png")
 resized_img = roff_1.resize((75, 75), Image.ANTIALIAS)
 roff_1 = ImageTk.PhotoImage(resized_img)
 # Create A Button
-ron_button_1 = Button(window, image=roff_1, bd=0)
-ron_button_1.place(x=407, y=630)
+
+canvasl_1.config(highlightthickness=0)
+canvasl_1.place(x=407, y=630)
+ron_button_1 = canvasl_1.create_image(0, 0, anchor=NW, image=roff_1)
+
 
 def switch_led2():
     global r_is_on_2
     if r_is_on_2:
-        ron_button_2.config(image=roff_2)
+        canvasl_2.itemconfig(ron_button_2, image=ron_2)
         r_is_on_2 = False
     else:
-        ron_button_2.config(image=ron_2)
+        canvasl_2.itemconfig(ron_button_2, image=ron_2)
         r_is_on_2 = True
 # Watering led 3
 r_is_on_2 = False
+canvasl_2 = Canvas(window, bg="grey", width=75, height=75)
 ron_2 = Image.open("../images/led_on.png")
 resized_img = ron_2.resize((75, 75), Image.ANTIALIAS)
 ron_2 = ImageTk.PhotoImage(resized_img)
@@ -544,19 +553,21 @@ roff_2 = Image.open("../images/led_off.png")
 resized_img = roff_2.resize((75, 75), Image.ANTIALIAS)
 roff_2 = ImageTk.PhotoImage(resized_img)
 # Create A Button
-ron_button_2 = Button(window, image=roff_2, bd=0)
-ron_button_2.place(x=737, y=630)
+canvasl_2.config(highlightthickness=0)
+canvasl_2.place(x=737, y=630)
+ron_button_2 = canvasl_2.create_image(0, 0, anchor=NW, image=roff_2)
 
 def switch_led3():
     global r_is_on_3
     if r_is_on_3:
-        ron_button_3.config(image=roff_3)
+        canvasl_3.itemconfig(ron_button_3, image=ron_3)
         r_is_on_3 = False
     else:
-        ron_button_3.config(image=ron_3)
+        canvasl_3.itemconfig(ron_button_3, image=ron_3)
         r_is_on_3 = True
 # Watering led 4
 r_is_on_3 = False
+canvasl_3 = Canvas(window, bg="grey", width=75, height=75)
 ron_3 = Image.open("../images/led_on.png")
 resized_img = ron_3.resize((75, 75), Image.ANTIALIAS)
 ron_3 = ImageTk.PhotoImage(resized_img)
@@ -565,19 +576,21 @@ roff_3 = Image.open("../images/led_off.png")
 resized_img = roff_3.resize((75, 75), Image.ANTIALIAS)
 roff_3 = ImageTk.PhotoImage(resized_img)
 # Create A Button
-ron_button_3 = Button(window, image=roff_3, bd=0)
-ron_button_3.place(x=1067, y=630)
+canvasl_3.config(highlightthickness=0)
+canvasl_3.place(x=1067, y=630)
+ron_button_3 = canvasl_3.create_image(0, 0, anchor=NW, image=roff_3)
 
 def switch_led4():
     global r_is_on_4
     if r_is_on_4:
-        ron_button_4.config(image=roff_4)
+        canvasl_4.itemconfig(ron_button_4, image=ron_4)
         r_is_on_4 = False
     else:
-        ron_button_4.config(image=ron_4)
+        canvasl_4.itemconfig(ron_button_4, image=ron_4)
         r_is_on_4 = True
 # Watering led 5
 r_is_on_4= False
+canvasl_4 = Canvas(window, bg="grey", width=75, height=75)
 ron_4 = Image.open("../images/led_on.png")
 resized_img = ron_4.resize((75, 75), Image.ANTIALIAS)
 ron_4 = ImageTk.PhotoImage(resized_img)
@@ -586,12 +599,15 @@ roff_4 = Image.open("../images/led_off.png")
 resized_img = roff_4.resize((75, 75), Image.ANTIALIAS)
 roff_4 = ImageTk.PhotoImage(resized_img)
 # Create A Button
-ron_button_4 = Button(window, image=roff_1, bd=0)
-ron_button_4.place(x=1397, y=630)
+canvasl_4.config(highlightthickness=0)
+canvasl_4.place(x=1397, y=630)
+ron_button_4 = canvasl_4.create_image(0, 0, anchor=NW, image=roff_4)
 
 # Real time graph
 line_color = "r"
 fig = Figure(figsize=(4, 3), dpi=100)
+fig.patch.set_facecolor("grey")
+fig.suptitle("Sensor1 temperature")
 t = 0.1
 x = [0, 0, 0, 0, 0]
 y = [0, 0, 0, 0, 0]
