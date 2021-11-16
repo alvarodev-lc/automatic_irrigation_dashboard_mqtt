@@ -49,6 +49,13 @@ def subscribe(client: mqtt_client):
                     elif char == ".":
                         parsed_msg += char
                     char_num += 1
+        elif "water" in msg.topic:
+            i = 0
+            for char in msg.payload.decode():
+                if i == 0 and char.isdigit():
+                    parsed_msg += char
+                else:
+                    break
         if msg.topic == "sensor/1/temp":
             temp_label.config(text=parsed_msg + "%",
                                 fg="black")
@@ -540,7 +547,7 @@ def switch_led2():
         canvasl_2.itemconfig(ron_button_2, image=ron_2)
         r_is_on_2 = False
     else:
-        canvasl_2.itemconfig(ron_button_2, image=ron_2)
+        canvasl_2.itemconfig(ron_button_2, image=roff_2)
         r_is_on_2 = True
 # Watering led 3
 r_is_on_2 = False
@@ -563,7 +570,7 @@ def switch_led3():
         canvasl_3.itemconfig(ron_button_3, image=ron_3)
         r_is_on_3 = False
     else:
-        canvasl_3.itemconfig(ron_button_3, image=ron_3)
+        canvasl_3.itemconfig(ron_button_3, image=roff_3)
         r_is_on_3 = True
 # Watering led 4
 r_is_on_3 = False
@@ -586,7 +593,7 @@ def switch_led4():
         canvasl_4.itemconfig(ron_button_4, image=ron_4)
         r_is_on_4 = False
     else:
-        canvasl_4.itemconfig(ron_button_4, image=ron_4)
+        canvasl_4.itemconfig(ron_button_4, image=roff_4)
         r_is_on_4 = True
 # Watering led 5
 r_is_on_4= False
