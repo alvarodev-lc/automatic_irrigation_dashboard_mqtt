@@ -110,7 +110,8 @@ def subscribe(client: mqtt_client):
 def publish(client, status, sensor_num):
     topic = f"sensor/{sensor_num}/status"
     msg = status
-    result = client.publish(topic, msg)
+    # qos=2 since this data determines whether the sensor works or not
+    result = client.publish(topic, msg, qos=2)
     # result: [0, 1]
     status = result[0]
     if status == 0:

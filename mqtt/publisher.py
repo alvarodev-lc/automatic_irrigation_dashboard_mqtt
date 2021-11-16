@@ -85,7 +85,8 @@ def publish(client):
         messages.append(humidity)
 
         for msg in messages:
-            result = client.publish(topics[topic_num], msg)
+            # qos=0 since they are not critical data
+            result = client.publish(topics[topic_num], msg, qos=0)
             # result: [0, 1]
             status = result[0]
             if status == 0:
