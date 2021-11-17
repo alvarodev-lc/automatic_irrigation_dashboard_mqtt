@@ -19,7 +19,6 @@ int arrivedcount = 0;
 #define DEBUG2
 bool nodeActivated = false;
 int water = 0;
-int Qos = 0;
 int profile = 1;
 char topicTemp[30]="";
 char topicHum[30]="";
@@ -29,8 +28,16 @@ char topicQoS[30]="";
 int water_hour = 19;
 int water_min_array[] = {35,36,36,37,38};
 int water_duration_array[] = {2,1,3,1,1};
-//int water_min = water_min_array[CLIENT_ID];
-//int water_duration = water_duration_array[CLIENT_ID];
+
+struct IrrigiProf {
+    float hum_min;
+    float hum_max;
+    float temp_min;
+    float temp_max;
+};
+
+struct IrrigiProf irrigationProfile[2] = {{0,99.0},{0,99.0}};
+
 class Node {
 
 public:
@@ -40,13 +47,14 @@ public:
     bool nodeEnabled;
     int water_min;
     int water_duration;
-    Node(int idNodo, std::shared_ptr <IPStack> ipstack,std::shared_ptr<MQTT::Client<IPStack, Countdown>> client):id(idNodo), m_ipstack(ipstack), m_client(client),nodeEnabled(true),water_min(water_min_array[idNodo]),water_duration(water_duration_array[idNodo]){};
+    Node(int idNodo, std::shared_ptr <IPStack> ipstack,std::shared_ptr<MQTT::Client<IPStack, Countdown>> client):id(idNodo), m_ipstack(ipstack), m_client(client),nodeEnabled(true),water_min(water_min_array[idNodo-1]),water_duration(water_duration_array[idNodo-1]){};
     float GetTemperature();
     float GetHumidity();
     bool CheckWaterTime();
     void UpdateSensors();
     void InitTopics();
     void PublishTopics(const char* topic,float value);
+    void CheckIrrigationConditions(const bool);
     void Connect();
     void Disconnect();
 #ifdef HW
@@ -102,7 +110,9 @@ void Node::Connect()
     char ident[20]; 
     sprintf(ident,"node%d",id);
     data.clientID.cstring = ident;
-
+    data.willFlag = '1';
+    data.will.topicName.cstring = topicStatus; 
+    data.will.message.cstring = "0";
     rc = m_client->connect(data);
 	if (rc != 0)
 	    printf("rc from MQTT connect is %d\n", rc);
@@ -110,7 +120,7 @@ void Node::Connect()
     printf("Node %d connected\n",id);
 #endif
 
-    sprintf(topicStatus, "sensor/%d/status",id);
+//    sprintf(topicStatus, "sensor/%d/status",id);
     rc = m_client->subscribe(topicStatus, MQTT::QOS2, CallbackStatus);
     if (rc != 0)
         printf("Error subscribing in topic status is %d\n", rc);
@@ -128,7 +138,8 @@ void Node::UpdateSensors()
     pclose(cmd);
     temp = ((atoi(result)/2.0)/10.0);
 #else
-    temp = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/33.0));      
+    //temp = (static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/33.0)));      
+    temp = (20.0 + 1.0) + (((float) rand()) / (float) RAND_MAX) * (40.0 - (20.0 + 1.0));
     humidity = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/99.0));      
 #endif
 }
@@ -204,26 +215,60 @@ void Node::InitTopics()
 {
     sprintf(topicTemp, "sensor/%d/temp",id);
     sprintf(topicHum, "sensor/%d/hum",id);
-    //sprintf(topicStatus, "sensor/%d/status",id);
     sprintf(topicWater, "sensor/%d/water",id);
-    //sprintf(topicQoS, "sensor/%d/QoS",id);
+    sprintf(topicStatus, "sensor/%d/status",id);
 #ifdef DEBUG2
     printf("%s\n",topicTemp);
     printf("%s\n",topicHum);
-    //printf("%s\n",topicStatus);
     printf("%s\n",topicWater);
-    //printf("%s\n",topicQoS);
+    printf("%s\n",topicStatus);
 #endif
 }
 
+void Node::CheckIrrigationConditions(const bool waterTime)
+{
 
+    static int waterSend=0;
+    printf("Water time: %d - profile: %d\n",waterTime,profile);
+    if(waterTime)
+    {
+        if(GetHumidity() < irrigationProfile[profile-1].hum_max)
+        {
+#ifdef HW
+            SetGPIO(PA12,1);
+#endif
+            printf("Electrovalvula activada. Aplicando perfil :%d\n",profile);
+            if(waterSend == 0)
+            {
+                waterSend = 1;
+                PublishTopics(topicWater,1);
+            }
+       }
+       else
+       {
+#ifdef HW
+            SetGPIO(PA12,0);
+#endif
+           printf("Humedad muy alta, evitando riego\n");
+       }
+    }
+    else
+    {
+        if(waterSend == 1)
+        {
+            waterSend = 0;
+            PublishTopics(topicWater,0);
+        }
+#ifdef HW
+            SetGPIO(PA12,0);
+#endif
+    }
+}
 void NodeThread(const int nodeId)
 {
     std::shared_ptr<IPStack> ipstack1 = std::make_shared<IPStack>();
     std::shared_ptr<MQTT::Client<IPStack, Countdown>> client1 = std::make_shared<MQTT::Client<IPStack, Countdown>>(*ipstack1);
-    //int id = CLIENT_ID; 
     int id = nodeId; 
-    int waterSend=0; 
     Node node = Node(id,ipstack1,client1);
 #ifdef DEBUG2
     printf("Node %d is running\n",node.id);
@@ -231,16 +276,16 @@ void NodeThread(const int nodeId)
 #ifdef HW
     node.HardwareInit();
 #endif
+    node.InitTopics();
+#ifdef DEBUG2
+    printf("Node %d creating topics\n",node.id);
+#endif
 #ifdef DEBUG2
     printf("Node %d is configured\n",node.id);
 #endif
     node.Connect();
 #ifdef DEBUG2
     printf("Node %d is connected\n",node.id);
-#endif
-    node.InitTopics();
-#ifdef DEBUG2
-    printf("Node %d creating topics\n",node.id);
 #endif
     while(1)
     {
@@ -255,25 +300,14 @@ void NodeThread(const int nodeId)
             node.PublishTopics(topicTemp,value); 
             value = node.GetHumidity();
             node.PublishTopics(topicHum,value);
-            printf("Water time: %d - profile: %d\n",waterTime,profile); 
-            if(waterTime)
+            if(value < irrigationProfile[profile-1].hum_min)
             {
-                printf("Electrovalvula activada. Aplicando perfil :%d\n",profile);
-                if(waterSend == 0)
-                {
-                    waterSend = 1;
-                    node.PublishTopics(topicWater,1);
-                }
+                printf("Humedad inferior al limite. Riego activado\n");
+#ifdef HW
+                SetGPIO(PA12,1);
+#endif 
             }
-            else
-            {
-                if(waterSend == 1)
-                {
-                    waterSend = 0;
-                    node.PublishTopics(topicWater,0);
-                }
-
-            }
+                node.CheckIrrigationConditions(waterTime); 
        }
        else
        {
@@ -288,7 +322,6 @@ void NodeThread(const int nodeId)
 }
 int main(int argc, char* argv[])
 { 
-    //printf("argc: %d argv[0]: %s\n",argc,argv[1]- '0');
     int i = atoi(argv[1]);
     NodeThread(i);
     return 0;
