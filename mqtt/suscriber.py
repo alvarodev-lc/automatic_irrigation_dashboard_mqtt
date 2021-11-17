@@ -623,7 +623,11 @@ subplot = fig.add_subplot(111)
 subplot.plot(x, y, c=line_color)
 subplot.set_ylabel("ºC")
 
-graph_canvas = FigureCanvasTkAgg(fig, master=window)  # A tk.DrawingArea.
+window_g = Tk()
+window_g.title("MQTT Dashboard")
+window_g.geometry("200x200")
+window_g.configure(bg="grey")
+graph_canvas = FigureCanvasTkAgg(fig, master = window_g)  # A tk.DrawingArea.
 graph_canvas.draw()
 graph_canvas.get_tk_widget().pack(side=BOTTOM, pady=10)
 
