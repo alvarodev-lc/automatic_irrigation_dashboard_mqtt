@@ -59,7 +59,7 @@ def subscribe(client: mqtt_client):
         if msg.topic == "sensor/1/temp":
             temp_label.config(text=parsed_msg + "%",
                                 fg="black")
-            update_graph(msg)
+            # update_graph(msg)
         elif msg.topic == "sensor/1/hum":
             hum_label.config(text=parsed_msg + "%",
                               fg="black")
@@ -612,6 +612,7 @@ canvasl_4.place(x=1397, y=630)
 ron_button_4 = canvasl_4.create_image(0, 0, anchor=NW, image=roff_4)
 
 # Real time graph
+'''
 line_color = "r"
 fig = Figure(figsize=(5, 3), dpi=100)
 fig.patch.set_facecolor("grey")
@@ -630,7 +631,7 @@ window_g.configure(bg="grey")
 graph_canvas = FigureCanvasTkAgg(fig, master = window_g)  # A tk.DrawingArea.
 graph_canvas.draw()
 graph_canvas.get_tk_widget().pack(side=BOTTOM, pady=10)
-
+'''
 client = connect_mqtt()
 subscribe(client)
 client.loop_start()
