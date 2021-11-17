@@ -5,24 +5,32 @@
 #include <thread>
 #include "MQTTClient.h"
 #ifdef HW
-//#include <beaglebone_pruio.h>
-//#include <beaglebone_pruio_pins.h>
+#include <beaglebone_pruio.h>
+#include <beaglebone_pruio_pins.h>
 #endif
+#define CLIENT_ID 5
 #define DEFAULT_STACK_SIZE -1
-#define PUBLISH_TIME 2
+#define PUBLISH_TIME 3
 #include <fstream>
 #include "linux/linux.cpp"
 #include <unistd.h>
+#include <time.h>
 int arrivedcount = 0;
-
-bool nodeActivated = true;
+#define DEBUG2
+bool nodeActivated = false;
 int water = 0;
 int Qos = 0;
+int profile = 1;
 char topicTemp[30]="";
 char topicHum[30]="";
 char topicStatus[30]="";
 char topicWater[30]="";
 char topicQoS[30]="";
+int water_hour = 19;
+int water_min_array[] = {35,36,36,37,38};
+int water_duration_array[] = {2,1,3,1,1};
+//int water_min = water_min_array[CLIENT_ID];
+//int water_duration = water_duration_array[CLIENT_ID];
 class Node {
 
 public:
@@ -30,9 +38,12 @@ public:
     float temp;
     float humidity;
     bool nodeEnabled;
-    Node(int idNodo, std::shared_ptr <IPStack> ipstack,std::shared_ptr<MQTT::Client<IPStack, Countdown>> client):id(idNodo), m_ipstack(ipstack), m_client(client),nodeEnabled(true){};
+    int water_min;
+    int water_duration;
+    Node(int idNodo, std::shared_ptr <IPStack> ipstack,std::shared_ptr<MQTT::Client<IPStack, Countdown>> client):id(idNodo), m_ipstack(ipstack), m_client(client),nodeEnabled(true),water_min(water_min_array[idNodo]),water_duration(water_duration_array[idNodo]){};
     float GetTemperature();
     float GetHumidity();
+    bool CheckWaterTime();
     void UpdateSensors();
     void InitTopics();
     void PublishTopics(const char* topic,float value);
@@ -49,38 +60,26 @@ void CallbackStatus(MQTT::MessageData& md)
 {
     MQTT::Message &message = md.message;
 
-#ifdef DEBUG2
     printf("Message %d arrived: qos %d, retained %d, dup %d, packetid %d\n", 
 		++arrivedcount, message.qos, message.retained, message.dup, message.id);
     printf("Topic Status updated:  %.*s\n", (int)message.payloadlen, (char*)message.payload);
-#endif    
     int val = atoi((char*)message.payload);
     ( val == 0) ?nodeActivated=false:nodeActivated=true;
 }
 
 
-void CallbackWater(MQTT::MessageData& md)
+void CallbackWeather(MQTT::MessageData& md)
 {
     MQTT::Message &message = md.message;
 
 #ifdef DEBUG2
     printf("Message %d arrived: qos %d, retained %d, dup %d, packetid %d\n", 
 		++arrivedcount, message.qos, message.retained, message.dup, message.id);
-    printf("Topic water updated:  %.*s\n", (int)message.payloadlen, (char*)message.payload);
+    printf("Topic profile updated:  %.*s\n", (int)message.payloadlen, (char*)message.payload);
 #endif    
     int val = atoi((char*)message.payload);
-    ( val == 0) ?water=false:water=true;
-}
-
-void CallbackQoS(MQTT::MessageData& md)
-{
-    MQTT::Message &message = md.message;
-#ifdef DEBUG2
-    printf("Message %d arrived: qos %d, retained %d, dup %d, packetid %d\n", 
-		++arrivedcount, message.qos, message.retained, message.dup, message.id);
-    printf("Topic Qos updated:  %.*s\n", (int)message.payloadlen, (char*)message.payload);
-#endif    
-    Qos = atoi((char*)message.payload);
+    profile = val;
+    printf("Weather profile: %d\n",profile);
 }
 
 void Node::Connect()
@@ -100,7 +99,9 @@ void Node::Connect()
 #endif
     MQTTPacket_connectData data = MQTTPacket_connectData_initializer;       
     data.MQTTVersion = 3;
-    data.clientID.cstring = (char*)"mbed-icraggs";
+    char ident[20]; 
+    sprintf(ident,"node%d",id);
+    data.clientID.cstring = ident;
 
     rc = m_client->connect(data);
 	if (rc != 0)
@@ -110,21 +111,13 @@ void Node::Connect()
 #endif
 
     sprintf(topicStatus, "sensor/%d/status",id);
-    sprintf(topicWater, "sensor/%d/water",id);
-    sprintf(topicQoS, "sensor/%d/QoS",id);
     rc = m_client->subscribe(topicStatus, MQTT::QOS2, CallbackStatus);
     if (rc != 0)
         printf("Error subscribing in topic status is %d\n", rc);
-#ifdef SUBS
     
-    rc = m_client->subscribe(topicWater, MQTT::QOS2, CallbackWater);
+    rc = m_client->subscribe("profile", MQTT::QOS2, CallbackWeather);
     if (rc != 0)
         printf("Error subscribing in topic water is %d\n", rc);
-    
-    rc = m_client->subscribe(topicQoS, MQTT::QOS2, CallbackQoS);
-    if (rc != 0)
-        printf("Error subscribing in topic QoS is %d\n", rc);
-#endif
 }
 void Node::UpdateSensors()
 {
@@ -135,8 +128,8 @@ void Node::UpdateSensors()
     pclose(cmd);
     temp = ((atoi(result)/2.0)/10.0);
 #else
-    temp = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/3.3));      
-    humidity = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/3.3));      
+    temp = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/33.0));      
+    humidity = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/99.0));      
 #endif
 }
 
@@ -188,18 +181,37 @@ void  Node::HardwareInit()
 }
 #endif
 
+bool Node::CheckWaterTime()
+{
+  bool execStat = false;
+  time_t rawtime;
+  struct tm * ptm;
+  time ( &rawtime );
+  ptm = gmtime ( &rawtime );
+
+  if((ptm->tm_hour == water_hour) && (ptm->tm_min >= water_min) && (water_min + water_duration > ptm->tm_min))
+    execStat = true;
+  else
+    execStat = false;
+#ifdef DEBUG2
+  printf ("Current time in Madrid(%i %i %i) : %2d:%02d\n",ptm->tm_hour == water_hour ,ptm->tm_min >= water_min, water_min + water_duration > ptm->tm_min ,(ptm->tm_hour)%24, ptm->tm_min);
+  printf("Water time is: %2d:%02d during %2d min\n", water_hour, water_min,water_duration);
+#endif
+  return execStat;
+
+}
 void Node::InitTopics()
 {
     sprintf(topicTemp, "sensor/%d/temp",id);
     sprintf(topicHum, "sensor/%d/hum",id);
     //sprintf(topicStatus, "sensor/%d/status",id);
-    //sprintf(topicWater, "sensor/%d/water",id);
+    sprintf(topicWater, "sensor/%d/water",id);
     //sprintf(topicQoS, "sensor/%d/QoS",id);
 #ifdef DEBUG2
     printf("%s\n",topicTemp);
     printf("%s\n",topicHum);
     //printf("%s\n",topicStatus);
-    //printf("%s\n",topicWater);
+    printf("%s\n",topicWater);
     //printf("%s\n",topicQoS);
 #endif
 }
@@ -209,7 +221,9 @@ void NodeThread(const int nodeId)
 {
     std::shared_ptr<IPStack> ipstack1 = std::make_shared<IPStack>();
     std::shared_ptr<MQTT::Client<IPStack, Countdown>> client1 = std::make_shared<MQTT::Client<IPStack, Countdown>>(*ipstack1);
-    const int id = nodeId; 
+    //int id = CLIENT_ID; 
+    int id = nodeId; 
+    int waterSend=0; 
     Node node = Node(id,ipstack1,client1);
 #ifdef DEBUG2
     printf("Node %d is running\n",node.id);
@@ -234,17 +248,32 @@ void NodeThread(const int nodeId)
         printf("nodeActivated: %d\n",nodeActivated);
 #endif
         node.UpdateSensors();
-        if(nodeActivated)
-        //if(true)
+        const bool waterTime = node.CheckWaterTime();
+        if(nodeActivated && (profile!=0))
         {
-            //node.UpdateSensors();
             float value = node.GetTemperature();
             node.PublishTopics(topicTemp,value); 
-            //node.PublishTopics("temperature",value); 
             value = node.GetHumidity();
-            node.PublishTopics(topicHum,value); 
-            //node.PublishTopics("humidity",value); 
-            //sleep(PUBLISH_TIME); 
+            node.PublishTopics(topicHum,value);
+            printf("Water time: %d - profile: %d\n",waterTime,profile); 
+            if(waterTime)
+            {
+                printf("Electrovalvula activada. Aplicando perfil :%d\n",profile);
+                if(waterSend == 0)
+                {
+                    waterSend = 1;
+                    node.PublishTopics(topicWater,1);
+                }
+            }
+            else
+            {
+                if(waterSend == 1)
+                {
+                    waterSend = 0;
+                    node.PublishTopics(topicWater,0);
+                }
+
+            }
        }
        else
        {
@@ -259,7 +288,9 @@ void NodeThread(const int nodeId)
 }
 int main(int argc, char* argv[])
 { 
-    NodeThread(argc);
+    //printf("argc: %d argv[0]: %s\n",argc,argv[1]- '0');
+    int i = atoi(argv[1]);
+    NodeThread(i);
     return 0;
 }
 
