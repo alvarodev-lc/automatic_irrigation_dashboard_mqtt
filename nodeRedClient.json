@@ -1,0 +1,251 @@
+[
+    {
+        "id": "19833d707b178c1d",
+        "type": "tab",
+        "label": "Flow 3",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "d7dde61fdddb95a7",
+        "type": "mqtt out",
+        "z": "19833d707b178c1d",
+        "name": "",
+        "topic": "profile",
+        "qos": "2",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "689ad1b95cd650b7",
+        "x": 690,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "e08e485c2b3fcdf8",
+        "type": "function",
+        "z": "19833d707b178c1d",
+        "name": "",
+        "func": "if (msg.payload.weather === \"Rain\")\n{\n    msg.payload = 0;    \n}\nelse if (msg.payload.weather === \"Clear\")\n{\n    msg.payload = 1;    \n}\nelse\n{\n    msg.payload = 2;    \n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 260,
+        "wires": [
+            [
+                "d7dde61fdddb95a7"
+            ]
+        ]
+    },
+    {
+        "id": "f8b2063447c524ae",
+        "type": "openweathermap",
+        "z": "19833d707b178c1d",
+        "name": "Madrid",
+        "wtype": "current",
+        "lon": "",
+        "lat": "",
+        "city": "Madrid",
+        "country": "Spain",
+        "language": "es",
+        "x": 110,
+        "y": 260,
+        "wires": [
+            [
+                "e08e485c2b3fcdf8"
+            ]
+        ]
+    },
+    {
+        "id": "597a01df8d5d995e",
+        "type": "inject",
+        "z": "19833d707b178c1d",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 120,
+        "y": 100,
+        "wires": [
+            [
+                "f8b2063447c524ae"
+            ]
+        ]
+    },
+    {
+        "id": "9b4cce66c0c3635d",
+        "type": "mqtt in",
+        "z": "19833d707b178c1d",
+        "name": "",
+        "topic": "+/+/temp",
+        "qos": "2",
+        "datatype": "auto",
+        "broker": "689ad1b95cd650b7",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "x": 100,
+        "y": 380,
+        "wires": [
+            [
+                "040ddcd82b2bd574"
+            ]
+        ]
+    },
+    {
+        "id": "ecdbecf67fdce4e4",
+        "type": "file",
+        "z": "19833d707b178c1d",
+        "name": "",
+        "filename": "/home/alay/Documentos/Master/SSDD/BBDD.csv",
+        "appendNewline": true,
+        "createDir": true,
+        "overwriteFile": "false",
+        "encoding": "none",
+        "x": 740,
+        "y": 460,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "0f58154cd79351be",
+        "type": "debug",
+        "z": "19833d707b178c1d",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 670,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "040ddcd82b2bd574",
+        "type": "function",
+        "z": "19833d707b178c1d",
+        "name": "",
+        "func": "\nmsg.payload = msg.topic + \": \" + msg.payload\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 350,
+        "y": 420,
+        "wires": [
+            [
+                "ecdbecf67fdce4e4",
+                "0f58154cd79351be"
+            ]
+        ]
+    },
+    {
+        "id": "c297b672f3888d07",
+        "type": "mqtt in",
+        "z": "19833d707b178c1d",
+        "name": "",
+        "topic": "+/+/hum",
+        "qos": "2",
+        "datatype": "auto",
+        "broker": "689ad1b95cd650b7",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "x": 110,
+        "y": 460,
+        "wires": [
+            [
+                "040ddcd82b2bd574"
+            ]
+        ]
+    },
+    {
+        "id": "e9d37be983759a3f",
+        "type": "mqtt in",
+        "z": "19833d707b178c1d",
+        "name": "",
+        "topic": "+/+/status",
+        "qos": "2",
+        "datatype": "auto",
+        "broker": "689ad1b95cd650b7",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "x": 110,
+        "y": 520,
+        "wires": [
+            [
+                "040ddcd82b2bd574"
+            ]
+        ]
+    },
+    {
+        "id": "f4294058f18764ad",
+        "type": "mqtt in",
+        "z": "19833d707b178c1d",
+        "name": "",
+        "topic": "+/+/water",
+        "qos": "2",
+        "datatype": "auto",
+        "broker": "689ad1b95cd650b7",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "x": 90,
+        "y": 580,
+        "wires": [
+            [
+                "040ddcd82b2bd574"
+            ]
+        ]
+    },
+    {
+        "id": "689ad1b95cd650b7",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "0.0.0.0",
+        "port": "1883",
+        "clientid": "",
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "sessionExpiry": ""
+    }
+]
